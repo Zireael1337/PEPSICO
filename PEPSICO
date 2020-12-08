@@ -39,7 +39,7 @@ class App(tk.Frame):
 
 
         """Настройка стилей"""
-        self.style()
+        self.settings()
 
     def create_menu(self):
         main = tk.Menu(self.root)
@@ -111,8 +111,12 @@ class App(tk.Frame):
     def graph_widgets(self):
         tk.Label(self.frame_graph, text="Тут должен быть график").grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
 
-    def style(self):
+    def settings(self):
         """Настройка стиля"""
+        self.root.title("ТЕСТ")
+        self.root.minsize(640, 360)
+        self.root.geometry('848x480')
+        self.root.maxsize(1280, 720)
         style = ttk.Style(self.root)
         style.configure('Treeview', rowheight=30)
         tk.Grid.rowconfigure(self.root, 0, weight=1)
