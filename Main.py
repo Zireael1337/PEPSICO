@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 import pandas as pd
 import numpy as np
-
+#123
 # гавно гавно
 
 class App(tk.Frame):
