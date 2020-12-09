@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 import pandas as pd
 import numpy as np
+
+# гавно гавно гавно
 #123
 # гавно гавно
 
