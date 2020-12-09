@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 import pandas as pd
 import numpy as np
-#123
+
 
 class App(tk.Frame):
     def __init__(self, root=None):
