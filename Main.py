@@ -4,6 +4,7 @@ from tkinter import filedialog as fd
 import pandas as pd
 import numpy as np
 
+# гавно
 
 class App(tk.Frame):
     def __init__(self, root=None):
