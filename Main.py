@@ -13,38 +13,51 @@ class App(tk.Frame):
         super().__init__(root)
         self.root = root
 
-        """Меню"""
-        self.create_menu()
-        """Фреймы"""
-        self.frame_toolbar = ttk.Frame(root)
+        """Создание Меню"""
+        self.window_menu()
+        """Фреймы в главном окне"""
+        self.toolbar = ttk.Frame(root)
         self.book = ttk.Notebook(root)
-
-        self.frame_table = ttk.Frame(self.book)
-        self.frame_graph = ttk.Frame(self.book)
-
-        """Заполнение фреймов"""
+        self.book.bind('<<NotebookTabChanged>>', self.tab_change)
+        """Создание виджетов"""
         self.toolbar_widgets()
-        self.table_widgets()
-        self.graph_widgets()
+        #self.frames_widgets()
+        self.tree = ttk.Treeview(root, show="headings", selectmode="browse")
 
-        self.frame_table.grid(row=0, column=1, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
-        self.frame_graph.grid(row=0, column=1, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+        """Создание фреймов(вкладок)"""
+        self.frames = {'lt_to_cr': {'devices': 'Оборудование, рабочее время',
+                                    'personal': 'Загрузка персонала',
+                                    'percent': 'Процент выполнения диаграмма'},
+                        'cr_to_obj': {}}
+
+        for i in self.frames['lt_to_cr'].keys():
+            exec(f"self.{i} = ttk.Frame(self.book)")
+            frm = eval(f"self.{i}")
+            self.frames['cr_to_obj'][self.frames['lt_to_cr'][i]] = frm
+            frm.grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+            self.book.add(frm, text= self.frames['lt_to_cr'][i])
+            tk.Grid.rowconfigure(frm, 0, weight=1)
+
+
+        #self.graph_widgets()
+
+        #self.frame_table.grid(row=0, column=1, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+        #self.frame_graph.grid(row=0, column=1, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
 
         """Добавление фреймов"""
-        self.book.add(self.frame_table, text='page1')
-        self.book.add(self.frame_graph, text='page2')
+        #self.book.add(self.frame_table, text='page1')
+        #self.book.add(self.frame_graph, text='page2')
 
 
 
         """Сетка root"""
-        self.frame_toolbar.grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+        self.toolbar.grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
         self.book.grid(row=0, column=1, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
-
 
         """Настройка стилей"""
         self.settings()
 
-    def create_menu(self):
+    def window_menu(self):
         main = tk.Menu(self.root)
         self.root.config(menu=main)
         settings = tk.Menu(main, tearoff=0)
@@ -101,18 +114,24 @@ class App(tk.Frame):
 
     def toolbar_widgets(self):
         self.df = None
-        self.b_swith_frame = tk.Button(self.frame_toolbar, text="Кнопка", command = self.table_widgets()).grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
-        self.listppl = tk.Listbox(self.frame_toolbar)
-        self.listobr = tk.Listbox(self.frame_toolbar)
+        self.b_swith_frame = tk.Button(self.toolbar, text="Кнопка").grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+        self.listppl = tk.Listbox(self.toolbar)
+        self.listobr = tk.Listbox(self.toolbar)
 
 
-    def table_widgets(self):
-        self.tree = ttk.Treeview(self.frame_table, show="headings", selectmode="browse")
-        self.tree.grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+    def frames_widgets(self):
+        self.tree = ttk.Treeview(self, show="headings", selectmode="browse")
+        #.grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+
+    def tab_change(self, event):
+        tab = event.widget.tab('current')['text']
+        frm = self.frames['cr_to_obj'][tab]
+        self.tree.grid(in_=frm, row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
 
 
-    def graph_widgets(self):
-        tk.Label(self.frame_graph, text="Тут должен быть график").grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
+
+   # def graph_widgets(self):
+    #    tk.Label(self.frame_graph, text="Тут должен быть график").grid(row=0, column=0, ipadx=5, ipady=5, padx=5, pady=5, sticky='NESW')
 
     def settings(self):
         """Настройка стиля"""
@@ -125,9 +144,9 @@ class App(tk.Frame):
         tk.Grid.rowconfigure(self.root, 0, weight=1)
         tk.Grid.columnconfigure(self.root, 0, weight=0)
         tk.Grid.columnconfigure(self.root, 1, weight=1)
-        for i in [self.frame_table, self.frame_graph]:
-            tk.Grid.rowconfigure(i, 0, weight=1)
-            tk.Grid.columnconfigure(i, 0, weight=1)
+        #for i in [self.frame_table, self.frame_graph]:
+         #   tk.Grid.rowconfigure(i, 0, weight=1)
+          #  tk.Grid.columnconfigure(i, 0, weight=1)
 
 
 def main():
