@@ -1,5 +1,7 @@
 import tkinter as tk
 
+# доки может потом будут
+
 class ListFrame(tk.Frame):
     def __init__(self, root, items={}, entry=False, command=None):
         super().__init__(root)
