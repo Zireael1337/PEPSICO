@@ -142,7 +142,7 @@ if __name__ == '__main__':
         def __init__(self, root=None):
             super().__init__(root)
             self.root = root
-            print(self.root, self)
+
             #self.root.minsize(640, 360)
             self.root.geometry('1000x600')
             #self.root.maxsize(1000, 600)
@@ -158,7 +158,8 @@ if __name__ == '__main__':
             self.d_frame = DictFrame(root, items=None, entry=False)
             self.t_frame = TableFrame(root, df=df, command=self.ff)
 
-
+            self.d_frame.grid(row=0, column=0)
+            self.t_frame.grid(row=1, column=0)
             self.root.grid_columnconfigure(0, weight=1)
             self.root.grid_rowconfigure(0, weight=1)
             self.root.grid_rowconfigure(1, weight=1)
