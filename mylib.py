@@ -1,7 +1,12 @@
-import tkinter as tk
-import time
+# -*- coding: utf-8 -*-
+# V. 1.0
 
-class DictFrame(tk.Frame):
+import tkinter as tk
+import tkinter.ttk as ttk
+import pandas as pd
+from datetime import datetime
+
+class DictFrame(ttk.Frame):
     def __init__(self, root, items={}, entry=True, validate="focusout", width=20, command=None):
         super().__init__(root)
         self.root = root
@@ -30,11 +35,11 @@ class DictFrame(tk.Frame):
     def insert(self, items={}):
         self.clear()
         for n, i in enumerate(items):
-            lk = tk.Label(text=i, padx=5, pady=1, font='bold')
+            lk = ttk.Label(self, text=i, font='bold')
             lk.grid(row=n, column=0, padx=5, pady=1, sticky='W')
             if self.entry:
                 self.items[i] = tk.StringVar()
-                ev = tk.Entry(width=self.width,
+                ev = ttk.Entry(self, width=self.width,
                               textvariable=self.items[i],
                               validate=self.validate,
                               validatecommand=self.callback,
@@ -43,7 +48,8 @@ class DictFrame(tk.Frame):
                 ev.grid(row=n, column=2, padx=5, pady=1, sticky='W')
                 self.rows.append([lk, ev])
             else:
-                lv = tk.Label(text=items[i], padx=5, pady=1, relief=tk.GROOVE)
+                lv = ttk.Label(self, text=items[i], width=self.width,
+                               relief=tk.GROOVE)
                 lv.grid(row=n, column=2, padx=5, pady=1, sticky='W')
                 self.rows.append([lk, lv])
 
@@ -60,30 +66,113 @@ class DictFrame(tk.Frame):
         return True
 
 
+class TableFrame(ttk.Frame):
+    def __init__(self, root, df, command=None):
+        super().__init__(root)
+        self.root = root
+        self.height = 20
+        self.width = 100
+        self.minwidth = 50
+        self.tree = ttk.Treeview(self, show="headings", height=self.height, selectmode="browse")
+        self.ysb = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        self.xsb = ttk.Scrollbar(self, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(xscrollcommand=self.xsb.set, yscrollcommand=self.ysb.set)
+
+        columns = list(df.columns)
+        self.tree["columns"] = columns
+        for i in self.tree["columns"]:
+            self.tree.heading(i, text=i)
+            self.tree.column(i, minwidth=self.minwidth, width=self.width, stretch=True)
+
+        self.root.after(1000, lambda: self.update(df))
+
+        self.tree.grid(row=0, column=0, sticky='NESW')
+        self.ysb.grid(row=0, column=1, sticky='NS')
+        self.xsb.grid(row=1, column=0, sticky='WE')
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+    def update(self, df):
+        if self.tree.get_children():
+            [self.tree.delete(i) for i in self.tree.get_children()]
+        print(str(datetime.now()))
+        # генератор
+        #gen = (self.tree.insert(parent='', index='end', iid=i[0], values=i[1:])\
+        #        for i in df.itertuples(index=True, name=None))
+
+        for i in df.itertuples(index=True, name=None):
+            self.tree.insert(parent='', index='end', iid=i[0], values=i[1:])
+
+        print(str(datetime.now()))
+        # планирование запуска генератора
+        #self.tree.grid_forget()
+        #self.root.after(1000, lambda: self.insert(gen))
+
+    # рекурсивное выполнение генератора в цикле TK
+    def insert(self, gen):
+        try:
+            next(gen)
+        except StopIteration:
+            self.tree.grid(row=0, column=0, sticky='NESW')
+            print(str(datetime.now()))
+            return
+        self.root.after(0, lambda: self.insert(gen))
+
+
+
+
 ###############################################################################
 if __name__ == '__main__':
-    class App(tk.Frame):
+
+
+
+    class App(ttk.Frame):
         def __init__(self, root=None):
             super().__init__(root)
+            self.root = root
+            print(self.root, self)
+            #self.root.minsize(640, 360)
+            self.root.geometry('1000x600')
+            #self.root.maxsize(1000, 600)
 
             a = {'a': 123,
                  'b': 'abc',
                  'c': None}
+            df = pd.read_csv(filepath_or_buffer=r'D:\work\terminal\bailiffs\in\Banking201201.csv',
+                                       encoding='cp1251', sep=';', decimal='.',
+                                       usecols = [i for i in range(0,5)],
+                                       skipinitialspace=True,
+                                       verbose=True, low_memory=False)
+            print('---------')
+            a= {'col_1': ['a', 3, 2, 1, 0], 'col_2': ['a', 'b', 'a', 'c', 'd']}
+            df_a = pd.DataFrame.from_dict(a)
+            b = {'col_1': ['b', 1, 1, 1, 1], 'col_2': ['a', 'a', 'f', 'a', 'a']}
+            df_b = pd.DataFrame.from_dict(b)
 
-            #list_frame = ListFrame(self, a, entry=False)
-            list_frame = DictFrame(self, a, entry=True, command=self.f)
-            list_frame.pack()
+            self.d_frame = DictFrame(root, a, entry=True, command=self.f)
 
-            a = {'m': 'ddd',
-                 'n': '777'}
-            self.after(2000, lambda: list_frame.insert(a))
-            b = {'m': 'ppp',
-                 'n': '888'}
-            self.after(4000, lambda: list_frame.update(b))
-            self.after(20000, lambda: list_frame.clear())
+            self.t_frame = TableFrame(root, df=df)
+
+            self.d_frame.grid(row=0, column=0)
+            self.t_frame.grid(row=1, column=0)
+
+            self.root.grid_columnconfigure(0, weight=1)
+            self.root.grid_rowconfigure(0, weight=1)
+            self.root.grid_rowconfigure(1, weight=1)
+
+
+            #root.after(3000, lambda: self.t_frame.update(df_a))
+            #root.after(6000, lambda: self.t_frame.update(df_b))
+
+
+        '''
+        def command_Print(counter=0):
+            Labelvar.set(counter)
+            if counter < 10:
+                root.after(1000, lambda: command_Print(counter+1))
+        '''
 
         def f(self, callback):
             print(callback)
 
     App(root=tk.Tk()).mainloop()
-
