@@ -6,6 +6,8 @@ import tkinter.ttk as ttk
 import pandas as pd
 from datetime import datetime
 
+
+###############################################################################
 class DictFrame(ttk.Frame):
     def __init__(self, root, items={}, entry=True, validate="focusout", width=20, command=None):
         super().__init__(root)
@@ -16,14 +18,19 @@ class DictFrame(ttk.Frame):
         self.command = command
         self.items = {}
         self.rows = []
-        self.insert(items)
+        if items:
+            self.insert(items)
 
     def update(self, items={}):
-        if self.entry is False:
-            self.items = items
+        if any(self.items) is False:
+            self.insert(items)
         else:
-            for i in items:
-                self.items[i].set(items[i] if items[i] else '')
+            if self.entry is False:
+                self.items = items
+            else:
+                for i in items:
+                    self.items[i].set(items[i] if items[i] else '')
+
 
     def clear(self):
         for i in self.rows:
@@ -35,7 +42,7 @@ class DictFrame(ttk.Frame):
     def insert(self, items={}):
         self.clear()
         for n, i in enumerate(items):
-            lk = ttk.Label(self, text=i, font='bold')
+            lk = ttk.Label(self, text=i)
             lk.grid(row=n, column=0, padx=5, pady=1, sticky='W')
             if self.entry:
                 self.items[i] = tk.StringVar()
@@ -65,15 +72,17 @@ class DictFrame(ttk.Frame):
         self.command(items)
         return True
 
-
+###############################################################################
 class TableFrame(ttk.Frame):
     def __init__(self, root, df, command=None):
         super().__init__(root)
         self.root = root
+        self.command = command
         self.height = 20
         self.width = 100
         self.minwidth = 50
         self.tree = ttk.Treeview(self, show="headings", height=self.height, selectmode="browse")
+        self.tree.bind("<ButtonRelease>", self.callback)
         self.ysb = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.xsb = ttk.Scrollbar(self, orient="horizontal", command=self.tree.xview)
         self.tree.configure(xscrollcommand=self.xsb.set, yscrollcommand=self.ysb.set)
@@ -118,14 +127,17 @@ class TableFrame(ttk.Frame):
             return
         self.root.after(0, lambda: self.insert(gen))
 
-
+    def callback(self, event):
+        if not self.command:
+            return True
+        iid = self.tree.selection()
+        print(self.tree.set(iid))
+        self.command(self.tree.set(iid))
+        return True
 
 
 ###############################################################################
 if __name__ == '__main__':
-
-
-
     class App(ttk.Frame):
         def __init__(self, root=None):
             super().__init__(root)
@@ -135,44 +147,25 @@ if __name__ == '__main__':
             self.root.geometry('1000x600')
             #self.root.maxsize(1000, 600)
 
-            a = {'a': 123,
-                 'b': 'abc',
-                 'c': None}
+
             df = pd.read_csv(filepath_or_buffer=r'D:\work\terminal\bailiffs\in\Banking201201.csv',
                                        encoding='cp1251', sep=';', decimal='.',
                                        usecols = [i for i in range(0,5)],
                                        skipinitialspace=True,
                                        verbose=True, low_memory=False)
-            print('---------')
-            a= {'col_1': ['a', 3, 2, 1, 0], 'col_2': ['a', 'b', 'a', 'c', 'd']}
-            df_a = pd.DataFrame.from_dict(a)
-            b = {'col_1': ['b', 1, 1, 1, 1], 'col_2': ['a', 'a', 'f', 'a', 'a']}
-            df_b = pd.DataFrame.from_dict(b)
 
-            self.d_frame = DictFrame(root, a, entry=True, command=self.f)
 
-            self.t_frame = TableFrame(root, df=df)
+            self.d_frame = DictFrame(root, items=None, entry=False)
+            self.t_frame = TableFrame(root, df=df, command=self.ff)
 
-            self.d_frame.grid(row=0, column=0)
-            self.t_frame.grid(row=1, column=0)
 
             self.root.grid_columnconfigure(0, weight=1)
             self.root.grid_rowconfigure(0, weight=1)
             self.root.grid_rowconfigure(1, weight=1)
 
 
-            #root.after(3000, lambda: self.t_frame.update(df_a))
-            #root.after(6000, lambda: self.t_frame.update(df_b))
 
-
-        '''
-        def command_Print(counter=0):
-            Labelvar.set(counter)
-            if counter < 10:
-                root.after(1000, lambda: command_Print(counter+1))
-        '''
-
-        def f(self, callback):
-            print(callback)
+        def ff(self, callback):
+            self.d_frame.update(callback)
 
     App(root=tk.Tk()).mainloop()
