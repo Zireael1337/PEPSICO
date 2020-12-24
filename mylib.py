@@ -9,19 +9,19 @@ from datetime import datetime
 
 ###############################################################################
 class DictFrame(ttk.Frame):
-    def __init__(self, root, items={}, entry=True, validate="focusout", width=20, command=None):
+    def __init__(self, root, items={}, entry=True, width=20, command=None):
         super().__init__(root)
         self.root = root
         self.width = width
         self.entry = entry
-        self.validate = validate
         self.command = command
         self.items = {}
         self.rows = []
         if items:
             self.insert(items)
 
-    def update(self, items={}):
+
+    def update(self, items):
         if any(self.items) is False:
             self.insert(items)
         else:
@@ -47,10 +47,7 @@ class DictFrame(ttk.Frame):
             if self.entry:
                 self.items[i] = tk.StringVar()
                 ev = ttk.Entry(self, width=self.width,
-                              textvariable=self.items[i],
-                              validate=self.validate,
-                              validatecommand=self.callback,
-                              invalidcommand=self.callback)
+                               textvariable=self.items[i])
                 ev.insert(0, items[i] if items[i] else '')
                 ev.grid(row=n, column=2, padx=5, pady=1, sticky='W')
                 self.rows.append([lk, ev])
@@ -60,6 +57,7 @@ class DictFrame(ttk.Frame):
                 lv.grid(row=n, column=2, padx=5, pady=1, sticky='W')
                 self.rows.append([lk, lv])
 
+    # плохо работает как callback, заменить на валидацию
     def callback(self):
         if not self.command:
             return True
@@ -77,6 +75,7 @@ class TableFrame(ttk.Frame):
     def __init__(self, root, df, command=None):
         super().__init__(root)
         self.root = root
+        self.init = False
         self.command = command
         self.height = 20
         self.width = 100
@@ -87,38 +86,44 @@ class TableFrame(ttk.Frame):
         self.xsb = ttk.Scrollbar(self, orient="horizontal", command=self.tree.xview)
         self.tree.configure(xscrollcommand=self.xsb.set, yscrollcommand=self.ysb.set)
 
-        columns = list(df.columns)
-        self.tree["columns"] = columns
-        for i in self.tree["columns"]:
-            self.tree.heading(i, text=i)
-            self.tree.column(i, minwidth=self.minwidth, width=self.width, stretch=True)
-
-        self.root.after(1000, lambda: self.update(df))
-
         self.tree.grid(row=0, column=0, sticky='NESW')
         self.ysb.grid(row=0, column=1, sticky='NS')
         self.xsb.grid(row=1, column=0, sticky='WE')
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        if df:
+            self.insert(self, df)
+
+    def insert(self, df):
+        columns = list(df.columns)
+        self.tree["columns"] = columns
+        for i in self.tree["columns"]:
+            self.tree.heading(i, text=i)
+            self.tree.column(i, minwidth=self.minwidth, width=self.width, stretch=True)
+        self.init = True
+        self.root.after(1, lambda: self.update(df))
+
+
     def update(self, df):
+        if self.init is False:
+            self.insert(df)
+
         if self.tree.get_children():
             [self.tree.delete(i) for i in self.tree.get_children()]
-        print(str(datetime.now()))
+
         # генератор
         #gen = (self.tree.insert(parent='', index='end', iid=i[0], values=i[1:])\
         #        for i in df.itertuples(index=True, name=None))
-
         for i in df.itertuples(index=True, name=None):
             self.tree.insert(parent='', index='end', iid=i[0], values=i[1:])
 
-        print(str(datetime.now()))
         # планирование запуска генератора
         #self.tree.grid_forget()
         #self.root.after(1000, lambda: self.insert(gen))
 
     # рекурсивное выполнение генератора в цикле TK
-    def insert(self, gen):
+    def aaa(self, gen):
         try:
             next(gen)
         except StopIteration:
@@ -131,18 +136,18 @@ class TableFrame(ttk.Frame):
         if not self.command:
             return True
         iid = self.tree.selection()
-        print(self.tree.set(iid))
-        self.command(self.tree.set(iid))
+        if iid:
+            self.command(self.tree.set(iid))
         return True
 
 
 ###############################################################################
+
 if __name__ == '__main__':
     class App(ttk.Frame):
         def __init__(self, root=None):
             super().__init__(root)
             self.root = root
-
             #self.root.minsize(640, 360)
             self.root.geometry('1000x600')
             #self.root.maxsize(1000, 600)
