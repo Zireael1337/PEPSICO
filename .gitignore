@@ -1,0 +1,9 @@
+*.py[cod]
+*.pyc
+*.db
+*.backup
+*.csv
+*.xlsx
+*.docx
+*.txt
+*.ods

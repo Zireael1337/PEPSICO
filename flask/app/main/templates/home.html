@@ -1,0 +1,21 @@
+<!-- templates/main.html -->
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+
+  <body>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            {{ message }}<br>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+   <form method="POST" enctype = "multipart/form-data" action="/">
+     {{ form.upload_file }}
+     {{ form.upload_submit }}
+   </form>
+  </body>
+</html>

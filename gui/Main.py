@@ -97,7 +97,6 @@ class App(tk.Frame):
     def inserttext(self, k):
         if k == 'ppl':
             self.listppl.delete(0, tk.END)
-
         if k == 'obr':
             self.listobr.delete(0, tk.END)
             self.listobr["width"] = "40"
