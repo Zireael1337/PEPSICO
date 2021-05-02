@@ -15,7 +15,7 @@ def home_get():
             file = request.files['upload_file'].stream._file
             data = read_csv(file)
 
-            SAPModel.save_sap(data)
+            SAPModel.update_sap(data)
 
 
 
